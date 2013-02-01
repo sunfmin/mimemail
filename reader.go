@@ -176,6 +176,9 @@ func (rr *RFC2047Reader) setErrAndReadLeft(e error, p []byte) (n int, err error)
 }
 
 func BodyReader(charset string, encoding string, r io.Reader, utf8ReaderFactory UTF8ReaderFactory) (br io.Reader, err error) {
+	if utf8ReaderFactory == nil {
+		utf8ReaderFactory = &DefaultUTF8ReaderFactory{}
+	}
 	return bodyReader([]byte(charset), []byte(encoding), r, utf8ReaderFactory)
 }
 
@@ -185,16 +188,12 @@ func bodyReader(charsetBytes []byte, encBytes []byte, r io.Reader, utf8ReaderFac
 	charset := strings.ToLower(string(charsetBytes))
 
 	switch encoding {
-	case "q":
+	case "q", "quoted-printable":
 		br = qDecoder{r: r}
-	case "b":
+	case "b", "base64":
 		br = base64.NewDecoder(base64.StdEncoding, r)
 	default:
-		err = fmt.Errorf("Wrong encoding: %s", encoding)
-	}
-
-	if err != nil {
-		return
+		br = r
 	}
 
 	br, err = utf8ReaderFactory.UTF8Reader(charset, br)

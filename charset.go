@@ -2,13 +2,8 @@ package mimemail
 
 import (
 	"bytes"
-	"errors"
-	// "fmt"
+	"fmt"
 	"io"
-)
-
-var (
-	CharsetNotSupported = errors.New("charset not supported")
 )
 
 type UTF8ReaderFactory interface {
@@ -22,10 +17,10 @@ func (dc *DefaultUTF8ReaderFactory) UTF8Reader(charset string, body io.Reader) (
 	switch charset {
 	case "iso-8859-1":
 		r = NewISO_8859_1(body)
-	case "utf-8":
+	case "utf-8", "us-ascii", "ascii", "":
 		r = body
 	default:
-		err = CharsetNotSupported
+		err = fmt.Errorf("charset %s not supported", charset)
 	}
 	return
 }
