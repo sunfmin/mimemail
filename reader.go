@@ -135,7 +135,7 @@ func (rr *RFC2047Reader) Read(p []byte) (n int, err error) {
 			rr.state = quoteEnding
 		}
 
-		rr.bodyReader, err = bodyReader(rr.charsetBytes, rr.encodingBytes, io.LimitReader(rr.br, int64(nCopy)), rr.utf8ReaderFactory)
+		rr.bodyReader, err = bodyReader(rr.charsetBytes, rr.encodingBytes, io.LimitReader(rr.br, int64(nCopy)), rr.utf8ReaderFactory, true)
 		if err != nil {
 			return rr.setErrAndReadLeft(err, p)
 		}
@@ -179,54 +179,101 @@ func BodyReader(charset string, encoding string, r io.Reader, utf8ReaderFactory 
 	if utf8ReaderFactory == nil {
 		utf8ReaderFactory = &DefaultUTF8ReaderFactory{}
 	}
-	return bodyReader([]byte(charset), []byte(encoding), r, utf8ReaderFactory)
+	return bodyReader([]byte(charset), []byte(encoding), r, utf8ReaderFactory, false)
 }
 
-func bodyReader(charsetBytes []byte, encBytes []byte, r io.Reader, utf8ReaderFactory UTF8ReaderFactory) (br io.Reader, err error) {
+func bodyReader(charsetBytes []byte, encBytes []byte, r io.Reader, utf8ReaderFactory UTF8ReaderFactory, spaceIsUnderline bool) (br io.Reader, err error) {
 
 	encoding := strings.ToLower(string(encBytes))
 	charset := strings.ToLower(string(charsetBytes))
 
 	switch encoding {
 	case "q", "quoted-printable":
-		br = qDecoder{r: r}
+		br = NewQDecoder(r, spaceIsUnderline)
 	case "b", "base64":
-		br = base64.NewDecoder(base64.StdEncoding, r)
+		br = base64.NewDecoder(base64.StdEncoding, NewLineLessReader(r))
 	default:
 		br = r
 	}
-
 	br, err = utf8ReaderFactory.UTF8Reader(charset, br)
 	return
 }
 
-type qDecoder struct {
-	r       io.Reader
-	scratch [2]byte
+type QDecoder struct {
+	r                *bufio.Reader
+	buf              *bytes.Buffer
+	err              error
+	isEql            bool
+	eqlCode          []byte
+	SpaceIsUnderline bool
 }
 
-func (qd qDecoder) Read(p []byte) (n int, err error) {
+func NewQDecoder(r io.Reader, spaceIsUnderline bool) (rd *QDecoder) {
+	rd = &QDecoder{r: bufio.NewReader(r), buf: bytes.NewBuffer(nil), SpaceIsUnderline: spaceIsUnderline}
+	return
+}
+
+func (qd *QDecoder) reset() {
+	qd.isEql = false
+	qd.eqlCode = nil
+}
+
+func (qd *QDecoder) Read(p []byte) (n int, err error) {
 	// This method writes at most one byte into p.
 	if len(p) == 0 {
 		return 0, nil
 	}
-	if _, err := qd.r.Read(qd.scratch[:1]); err != nil {
-		return 0, err
+
+	if qd.buf.Len() >= len(p) {
+		return qd.buf.Read(p)
 	}
-	switch c := qd.scratch[0]; {
-	case c == '=':
-		if _, err := io.ReadFull(qd.r, qd.scratch[:2]); err != nil {
-			return 0, err
-		}
-		x, err := strconv.ParseInt(string(qd.scratch[:2]), 16, 64)
-		if err != nil {
-			return 0, fmt.Errorf("mail: invalid RFC 2047 encoding: %q", qd.scratch[:2])
-		}
-		p[0] = byte(x)
-	case c == '_':
-		p[0] = ' '
-	default:
-		p[0] = c
+
+	if qd.err != nil {
+		n, _ = qd.buf.Read(p)
+		err = qd.err
+		return
 	}
-	return 1, nil
+
+	readBytes := make([]byte, 512)
+	n, qd.err = qd.r.Read(readBytes)
+	for i := 0; i < n; i++ {
+		c := readBytes[i]
+		if qd.isEql {
+			if c == '\n' || c == '\r' {
+				qd.reset()
+				continue
+			}
+			if len(qd.eqlCode) < 2 {
+				qd.eqlCode = append(qd.eqlCode, c)
+			}
+			if len(qd.eqlCode) == 2 {
+				x, err := strconv.ParseInt(string(qd.eqlCode), 16, 64)
+				if err != nil {
+					return 0, fmt.Errorf("mail: invalid RFC 2047 encoding: %q", qd.eqlCode)
+				}
+				qd.buf.WriteByte(byte(x))
+				qd.reset()
+			}
+			continue
+		}
+
+		switch c {
+		case '=':
+			qd.isEql = true
+		case '_':
+			if qd.SpaceIsUnderline {
+				qd.buf.WriteByte(byte(' '))
+			} else {
+				qd.buf.WriteByte('_')
+			}
+			qd.reset()
+		case '\n', '\r':
+			qd.reset()
+		default:
+			qd.buf.WriteByte(c)
+			qd.reset()
+		}
+	}
+
+	return qd.Read(p)
 }

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	// "fmt"
 	"github.com/sunfmin/mimemail"
-	// "io"
+	"io"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -60,4 +60,52 @@ func TestISO_8859_1(t *testing.T) {
 	// fmt.Println("UTF8      ", []byte("Jörg Doe <joerg@example.com>"))
 	// fmt.Println("CONVERTED ", b2)
 
+}
+
+func TestLinelessReader(t *testing.T) {
+	r := mimemail.NewLineLessReader(strings.NewReader("aaaa\nbbbbb\nccc\r\nddd"))
+	// r := strings.NewReader("aaaabbbbbcccddd")
+	b, err := ioutil.ReadAll(r)
+	if err != nil {
+		t.Error(err)
+	}
+	s := string(b)
+	if s != "aaaabbbbbcccddd" {
+		t.Error(s)
+	}
+}
+
+func TestQuotedPrintable(t *testing.T) {
+	f, err := os.Open("quoted-printable.txt")
+	defer f.Close()
+	if err != nil {
+		t.Error(err)
+	}
+	r := mimemail.NewQDecoder(f, false)
+
+	generated := bytes.NewBuffer(nil)
+	_, err = io.Copy(generated, r)
+	if err != nil {
+		t.Error(err)
+	}
+
+	var original io.Reader
+	original, err = os.Open("original.txt")
+	if err != nil {
+		t.Error(err)
+	}
+	originalbuf := bytes.NewBuffer(nil)
+	_, err = io.Copy(originalbuf, original)
+	if err != nil {
+		t.Error(err)
+	}
+	gen := generated.Bytes()
+	org := originalbuf.Bytes()
+
+	for i, _ := range gen {
+		if gen[i] != org[i] {
+			t.Errorf("\nat %d was: \t\t%s\nexpected:\t\t%s", i, string(gen[i:i+10]), string(org[i:i+10]))
+			break
+		}
+	}
 }
