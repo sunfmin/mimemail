@@ -182,14 +182,14 @@ func BodyReader(charset string, encoding string, r io.Reader, utf8ReaderFactory 
 	return bodyReader([]byte(charset), []byte(encoding), r, utf8ReaderFactory, false)
 }
 
-func bodyReader(charsetBytes []byte, encBytes []byte, r io.Reader, utf8ReaderFactory UTF8ReaderFactory, spaceIsUnderline bool) (br io.Reader, err error) {
+func bodyReader(charsetBytes []byte, encBytes []byte, r io.Reader, utf8ReaderFactory UTF8ReaderFactory, isHeader bool) (br io.Reader, err error) {
 
 	encoding := strings.ToLower(string(encBytes))
 	charset := strings.ToLower(string(charsetBytes))
 
 	switch encoding {
 	case "q", "quoted-printable":
-		br = NewQDecoder(r, spaceIsUnderline)
+		br = NewQDecoder(r, isHeader)
 	case "b", "base64":
 		br = base64.NewDecoder(base64.StdEncoding, NewLineLessReader(r))
 	default:
@@ -200,16 +200,16 @@ func bodyReader(charsetBytes []byte, encBytes []byte, r io.Reader, utf8ReaderFac
 }
 
 type QDecoder struct {
-	r                *bufio.Reader
-	buf              *bytes.Buffer
-	err              error
-	isEql            bool
-	eqlCode          []byte
-	SpaceIsUnderline bool
+	r        *bufio.Reader
+	buf      *bytes.Buffer
+	err      error
+	isEql    bool
+	eqlCode  []byte
+	IsHeader bool
 }
 
-func NewQDecoder(r io.Reader, spaceIsUnderline bool) (rd *QDecoder) {
-	rd = &QDecoder{r: bufio.NewReader(r), buf: bytes.NewBuffer(nil), SpaceIsUnderline: spaceIsUnderline}
+func NewQDecoder(r io.Reader, isHeader bool) (rd *QDecoder) {
+	rd = &QDecoder{r: bufio.NewReader(r), buf: bytes.NewBuffer(nil), IsHeader: isHeader}
 	return
 }
 
@@ -261,13 +261,16 @@ func (qd *QDecoder) Read(p []byte) (n int, err error) {
 		case '=':
 			qd.isEql = true
 		case '_':
-			if qd.SpaceIsUnderline {
+			if qd.IsHeader {
 				qd.buf.WriteByte(byte(' '))
 			} else {
 				qd.buf.WriteByte('_')
 			}
 			qd.reset()
 		case '\n', '\r':
+			if !qd.IsHeader {
+				qd.buf.WriteByte(c)
+			}
 			qd.reset()
 		default:
 			qd.buf.WriteByte(c)

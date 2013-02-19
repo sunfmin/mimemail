@@ -3,6 +3,7 @@ package mimemail
 import (
 	"bytes"
 	// "fmt"
+	"code.google.com/p/mahonia"
 	"github.com/sunfmin/mimemail"
 	"io"
 	"io/ioutil"
@@ -10,6 +11,25 @@ import (
 	"strings"
 	"testing"
 )
+
+type utf8reader struct {
+}
+
+var charsetaliases = map[string]string{
+	"gb2312": "gbk",
+}
+
+func (ur *utf8reader) UTF8Reader(charset string, body io.Reader) (r io.Reader, err error) {
+	alias := strings.ToLower(charset)
+	newname, ok := charsetaliases[alias]
+	if ok {
+		charset = newname
+	}
+	r = mahonia.NewDecoder(charset).NewReader(body)
+	return
+}
+
+var defaultutf8reader = &utf8reader{}
 
 type Case struct {
 	Input  string
@@ -20,6 +40,7 @@ var cases = []Case{
 	{"=?utf-8?B?SGVsbG8gUERGIOWKoOeCueS4reaWh+WSjOaXpeacrOiqnuOBig==?=\r\n=?utf-8?B?44Gv44KI44GG44GU44GW44GE44G+44GZ?=", `Hello PDF 加点中文和日本語おはようございます`},
 	{"=?iso-8859-1?q?J=F6rg_Doe?= <joerg@example.com>", "Jörg Doe <joerg@example.com>"},
 	{"=?ISO-8859-1?Q?Andr=E9?= Pirard <PIRARD@vm1.ulg.ac.be>", "André Pirard <PIRARD@vm1.ulg.ac.be>"},
+	{"=?ISO-2022-JP?B?RndkOiBFQxskQkwkRn4yWUlKSFYkLDJoTEw+ZTlYRn4yREc9JEskShsoQg==?= =?ISO-2022-JP?B?GyRCJEMkRiQkJGs3bxsoQg==?=", "Fwd: EC未入荷品番が画面上購入可能になっている件"},
 }
 
 func TestReader(t *testing.T) {
@@ -28,7 +49,7 @@ func TestReader(t *testing.T) {
 		var b []byte
 		ir := strings.NewReader(c.Input)
 
-		r := mimemail.NewRFC2047Reader(ir, nil)
+		r := mimemail.NewRFC2047Reader(ir, defaultutf8reader)
 		b, err = ioutil.ReadAll(r)
 		if err != nil {
 			t.Error(err)
