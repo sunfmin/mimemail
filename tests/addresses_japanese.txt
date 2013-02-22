@@ -1,0 +1,100 @@
+Delivered-To: sunfmin@gmail.com
+Received: by 10.64.29.48 with SMTP id g16csp63836ieh;
+        Sun, 17 Feb 2013 17:40:27 -0800 (PST)
+X-Received: by 10.68.189.169 with SMTP id gj9mr25851475pbc.67.1361151626727;
+        Sun, 17 Feb 2013 17:40:26 -0800 (PST)
+Return-Path: <felix+caf_=sunfmin=gmail.com@theplant.jp>
+Received: from mail-pb0-f53.google.com (mail-pb0-f53.google.com [209.85.160.53])
+        by mx.google.com with ESMTPS id o4si18793716paw.333.2013.02.17.17.40.26
+        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Sun, 17 Feb 2013 17:40:26 -0800 (PST)
+Received-SPF: neutral (google.com: 209.85.160.53 is neither permitted nor denied by domain of felix+caf_=sunfmin=gmail.com@theplant.jp) client-ip=209.85.160.53;
+Authentication-Results: mx.google.com;
+       spf=neutral (google.com: 209.85.160.53 is neither permitted nor denied by domain of felix+caf_=sunfmin=gmail.com@theplant.jp) smtp.mail=felix+caf_=sunfmin=gmail.com@theplant.jp
+Received: by mail-pb0-f53.google.com with SMTP id un1so1388565pbc.12
+        for <sunfmin@gmail.com>; Sun, 17 Feb 2013 17:40:26 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20120113;
+        h=x-received:x-forwarded-to:x-forwarded-for:delivered-to:x-received
+         :received-spf:x-received:x-beenthere:x-received:x-received
+         :received-spf:message-id:from:to:cc:subject:date:mime-version
+         :x-priority:x-msmail-priority:x-mailer:x-mimeole:x-original-sender
+         :x-original-authentication-results:precedence:mailing-list:list-id
+         :x-google-group-id:list-help:content-type:x-gm-message-state;
+        bh=LbHxwveLLMLkfuL7A14BEPNiVqjeEopeOwUZOwRkJhQ=;
+        b=XVaBI1iPRt6vg3LPkNXZ2sWiFC/RJS+9SsrGpHMP6H7DFclys+kwWrCNGR/4nkFMMt
+         c9yaeGuyuiv/xrRJtU2e28Y4vEpYOoUPGJfmB+VXG/s4fgB5giO0u2EA4lkHIl4dXf8m
+         7E3lskGD8E4t8cbUN78heNjmP6JAEw3Y0VryHCDLIPc2JFMzxVFSXHrH5/LOMglXQZCg
+         0rL03UPXQZtr8q1liONdWPHUex7qTOcXEEFSJULq7A9vcKiZNGE0+GQGMBFisXiXlDL7
+         sNEr+HJOTisgbuD0xHeRWRGqOKoalada4bcRkhUK1BGVxTOxu86R79hWBilWTQOPnDV3
+         KKMA==
+X-Received: by 10.66.164.97 with SMTP id yp1mr31673591pab.47.1361151626013;
+        Sun, 17 Feb 2013 17:40:26 -0800 (PST)
+X-Forwarded-To: sunfmin@gmail.com
+X-Forwarded-For: felix@theplant.jp sunfmin@gmail.com
+Delivered-To: felix@theplant.jp
+Received: by 10.68.115.162 with SMTP id jp2csp14143pbb;
+        Sun, 17 Feb 2013 17:40:25 -0800 (PST)
+X-Received: by 10.42.58.67 with SMTP id g3mr5084647ich.56.1361151624894;
+        Sun, 17 Feb 2013 17:40:24 -0800 (PST)
+Return-Path: <lacoste-dev+bncBD623FMJSUHBBB4NQ2EQKGQEBVZP4CQ@theplant.jp>
+Received: from mail-ie0-x248.google.com (ie-in-x0248.1e100.net [2607:f8b0:4001:c03::248])
+        by mx.google.com with ESMTPS id ml2si3165337igc.29.2013.02.17.17.40.24
+        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Sun, 17 Feb 2013 17:40:24 -0800 (PST)
+Received-SPF: pass (google.com: domain of lacoste-dev+bncBD623FMJSUHBBB4NQ2EQKGQEBVZP4CQ@theplant.jp designates 2607:f8b0:4001:c03::248 as permitted sender) client-ip=2607:f8b0:4001:c03::248;
+Received: by mail-ie0-f200.google.com with SMTP id c11sf25849192ieb.3
+        for <felix@theplant.jp>; Sun, 17 Feb 2013 17:40:24 -0800 (PST)
+X-Received: by 10.50.41.164 with SMTP id g4mr8444528igl.1.1361151624019;
+        Sun, 17 Feb 2013 17:40:24 -0800 (PST)
+X-BeenThere: lacoste-dev@theplant.jp
+Received: by 10.50.208.41 with SMTP id mb9ls1013789igc.26.gmail; Sun, 17 Feb
+ 2013 17:40:23 -0800 (PST)
+X-Received: by 10.68.189.71 with SMTP id gg7mr25940284pbc.15.1361151623337;
+        Sun, 17 Feb 2013 17:40:23 -0800 (PST)
+X-Received: by 10.68.189.71 with SMTP id gg7mr25940276pbc.15.1361151623268;
+        Sun, 17 Feb 2013 17:40:23 -0800 (PST)
+Received: from mail.as.customer.ne.jp (mail08.as.customer.ne.jp. [202.239.124.23])
+        by mx.google.com with ESMTP id rz8si11172684pbc.327.2013.02.17.17.40.22;
+        Sun, 17 Feb 2013 17:40:23 -0800 (PST)
+Received-SPF: pass (google.com: domain of Ta.Nakamura@trinet-logi.com designates 202.239.124.23 as permitted sender) client-ip=202.239.124.23;
+Received: (qmail 11371 invoked by SAV 20130217.019); 18 Feb 2013 10:40:20 +0900
+Received: from unknown (HELO TATPC167) (Ta.Nakamura@[61.213.11.128])
+  by mail.as.customer.ne.jp with SMTP; 18 Feb 2013 10:40:20 +0900
+Message-ID: <0C21ADBF7DCD4C95849463409B38C316@trinetlogi.local>
+From: =?iso-2022-jp?B?GyRCQ2ZCPCEhQyNMaRsoQg==?= <Ta.Nakamura@trinet-logi.com>
+To: "Jun Kanda" <jkanda@fabricant.co.jp>,
+	"Jinzhu" <juice@theplant.jp>
+Cc: "Anatole Varin" <anatole@theplant.jp>,
+	"Varin Anatole" <a@theplant.jp>,
+	<lacoste-dev@theplant.jp>,
+	=?iso-2022-jp?B?GyRCSEo+ZT1fGyhC?= <jazegami@fabricant.co.jp>,
+	"Alexandre Miroux" <amiroux@fabricant.co.jp>,
+	=?iso-2022-jp?B?GyRCOS87SxsoQiAbJEI4NkVEGyhC?= <Y.Harada@trinet-logi.com>,
+	=?iso-2022-jp?B?GyRCP2VLXDYpPVMbKEIgGyRCP2VLXDYpPVMbKEI=?= <mmizumoto@fabricant.co.jp>,
+	=?iso-2022-jp?B?GyRCPj4wQiEhOC08IyE/JTclOSVGJWAzK0gvPDwhITw8RDkbKEI=?= <K.Matsuyasu@trinet-logi.com>,
+	=?iso-2022-jp?B?GyRCMEtGIyEhQmchPxsoQklUGyRCP2Q/Skl0NihOTzJxPFIbKEI=?= <H.Ito@trinet-logi.com>
+Subject: =?iso-2022-jp?B?UmU6IHBheWdlbnQbJEIlRyE8JT8bKEI=?=
+Date: Mon, 18 Feb 2013 10:41:52 +0900
+MIME-Version: 1.0
+X-Priority: 3
+X-MSMail-Priority: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2900.5931
+X-MimeOLE: Produced By Microsoft MimeOLE V6.00.2900.6157
+X-Original-Sender: ta.nakamura@trinet-logi.com
+X-Original-Authentication-Results: mx.google.com;       spf=pass (google.com:
+ domain of Ta.Nakamura@trinet-logi.com designates 202.239.124.23 as permitted
+ sender) smtp.mail=Ta.Nakamura@trinet-logi.com
+Precedence: list
+Mailing-list: list lacoste-dev@theplant.jp; contact lacoste-dev+owners@theplant.jp
+List-ID: <lacoste-dev.theplant.jp>
+X-Google-Group-Id: 844228307214
+List-Help: <http://support.google.com/a/theplant.jp/bin/topic.py?hl=en_US&topic=25838>,
+ <mailto:lacoste-dev+help@theplant.jp>
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_008E_01CE0DC4.90813120"
+X-Gm-Message-State: ALoCoQm2IFJ4UM0NRUOmNyq+JgVZYXklVhEPTGC+5JrglvWvBYruf5fs+pEWOfeBLuNG59YaXKds
+
+This is a multi-part message in MIME format.
+
+

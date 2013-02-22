@@ -1,12 +1,14 @@
 package mimemail
 
 import (
+	"bufio"
 	"bytes"
-	// "fmt"
 	"code.google.com/p/mahonia"
 	"github.com/sunfmin/mimemail"
 	"io"
 	"io/ioutil"
+	"net/mail"
+	"net/textproto"
 	"os"
 	"strings"
 	"testing"
@@ -128,5 +130,67 @@ func TestQuotedPrintable(t *testing.T) {
 			t.Errorf("\nat %d was: \t\t%s\nexpected:\t\t%s", i, string(gen[i:i+10]), string(org[i:i+10]))
 			break
 		}
+	}
+}
+
+type addressCase struct {
+	filename          string
+	key               string
+	expectedAddresses []*mail.Address
+}
+
+var addresscases = []addressCase{
+	{
+		"addresses_japanese.txt",
+		"Cc",
+		[]*mail.Address{
+			{"Anatole Varin", "anatole@theplant.jp"},
+			{"Varin Anatole", "a@theplant.jp"},
+			{"", "lacoste-dev@theplant.jp"},
+			{"畔上淳", "jazegami@fabricant.co.jp"},
+			{"Alexandre Miroux", "amiroux@fabricant.co.jp"},
+			{"康史 原田", "Y.Harada@trinet-logi.com"},
+			{"水本匡俊 水本匡俊", "mmizumoto@fabricant.co.jp"},
+			{"松安　賢治／システム開発室　室長", "K.Matsuyasu@trinet-logi.com"},
+			{"伊藤　大／IT推進部協力会社", "H.Ito@trinet-logi.com"},
+		},
+	},
+}
+
+func TestAddressList(t *testing.T) {
+	for _, c := range addresscases {
+
+		f, err := os.Open(c.filename)
+		defer f.Close()
+		if err != nil {
+			t.Error(err)
+		}
+
+		tpr := textproto.NewReader(bufio.NewReader(f))
+		var h textproto.MIMEHeader
+		h, err = tpr.ReadMIMEHeader()
+		if err != nil {
+			t.Error(err)
+		}
+		addresses, err1 := mimemail.AddressList(h, c.key, defaultutf8reader)
+		if err1 != nil {
+			t.Error(err1)
+		}
+
+		if len(addresses) != len(c.expectedAddresses) {
+			t.Errorf("wrong length: %d, should be: %d", len(addresses), len(c.expectedAddresses))
+			continue
+		}
+
+		for i, ad := range c.expectedAddresses {
+			if ad.Name != addresses[i].Name {
+				t.Errorf("Name wrong at %d, is %s, expected %s", i, addresses[i].Name, ad.Name)
+			}
+
+			if ad.Address != addresses[i].Address {
+				t.Errorf("Address wrong at %d, is %s, expected %s", i, addresses[i].Address, ad.Address)
+			}
+		}
+
 	}
 }
